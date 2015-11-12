@@ -11,27 +11,27 @@ var buffer 		= require('vinyl-buffer');
 
 gulp.task('hello', function()
 {
-	console.log('Waaazzuuuuuppp');
+	console.log('I`m here!');
 });
 
 gulp.task('copyIndex', function()
 {
 	return gulp.src('src/index.html')
-	.pipe(gulp.dest('./build'))
+	.pipe(gulp.dest('./shinyApp/www'))
 	.pipe(browserSync.reload({stream: true}));
 });
 
 gulp.task('copyCss', function()
 {
 	return gulp.src('src/*.css')
-			.pipe(gulp.dest('./build'))
+			.pipe(gulp.dest('./shinyApp/www'))
 			.pipe(browserSync.reload({stream: true}));
 });
 
 gulp.task('copyJson', function()
 {
 	return gulp.src('src/*.json')
-			.pipe(gulp.dest('./build'))
+			.pipe(gulp.dest('./shinyApp/www'))
 			.pipe(browserSync.reload({stream: true}));
 });
 
@@ -39,7 +39,7 @@ gulp.task('browserSync', function()
 {
 	browserSync({
 		server: {
-			baseDir: './build'
+			baseDir: './shinyApp/www'
 		}
 	});
 });
@@ -57,12 +57,12 @@ gulp.task('typescriptIt', function()
 		.bundle()
 		.pipe(source('App.js'))
 		.pipe(buffer())
-		.pipe(gulp.dest('./build'));
+		.pipe(gulp.dest('./shinyApp/www'));
 });
 
 gulp.task('clean', function()
 {
-	return gulp.src('./build', {read: false})
+	return gulp.src('./shinyApp/www', {read: false})
 			.pipe(vinylPaths(del));
 });
 
