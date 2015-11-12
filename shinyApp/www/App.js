@@ -86,7 +86,7 @@ var Project = (function () {
     Project.prototype.Show = function () {
         this.svgElement = this.svgElement.style("visibility", "hidden");
     };
-    Project.prototype.Move = function (cx, cy) {
+    Project.prototype.SetMode = function (labelMode) {
     };
     return Project;
 })();

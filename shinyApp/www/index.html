@@ -8,14 +8,341 @@
     <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
 
     <!-- d3 js -->
-    <!-- Jquery UI -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.7/d3.min.js"></script>
 
+    <!-- Bootstrap -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+    <!-- User js and stylesheets-->
+    <link href="theme-style.css" rel="stylesheet">
     <link href="project-style.css" rel="stylesheet">
 </head>
 <body>
 
-<div class="vis"></div>
+<!-- Wrap all page content here -->
+
+<!-- Fixed navbar -->
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Визуализация проектов ULNANOTECH</a>
+        </div>
+        <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <!-- <li class="active"><a href="#">Home</a></li> -->
+                <li><a href="#" data-toggle="modal" data-target="#basicModal">Обновление</a></li>
+                <li><a href="#myModal" data-backdrop="false" data-toggle="modal">Режим просмотра</a></li>
+                <li><a href="#colorModal" data-backdrop="false" data-toggle="modal">Цвета</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</div>
+
+<!-- Begin page content -->
+<div style="position:absolute;top:0px;left:0px;bottom:0;right:0; width: 100%;">
+    <div class="vis" style = "height:100vh; overflow:hidden"></div>
+</div>
+
+
+<div class="modal fade" id="basicModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Обновление информации о проектах Наноцентра</h4>
+            </div>
+            <div class="modal-body">
+                <h4>Пайплайн обновлений следующий:</h4>
+                <ol>
+                    <li>Скачайте предыдущую версию</li>
+                    <div class="widjet-container">
+                        <div id="fileDownload" class="shiny-html-output"></div>
+                    </div>
+                    <li>Обновите данные</li>
+                    <li>Загрузите обновленные данные</li>
+                    <div class="widjet-container">
+                        <div id="fileUpload" class="shiny-html-output"></div>
+                    </div>
+                    <li>Нажмите обновить данные</li>
+                    <div class="widjet-container">
+                        <button id="button" type="button" class="btn btn-default action-button">Обновить данные</button>
+                    </div>
+                    <div class="busy">
+                        <p>Calculation is in progress ... </p>
+                        <img src= "battery.gif"/>
+                    </div>
+                </ol>
+                <div class="alert alert-info" role="alert">
+                    <h4>Внимание!</h4>
+                    Все изменения выполняются в строгом соответствии с принятой структурой файла. В случае несоблюдения могут возникнуть ошибки и граф правильно не построится!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="myModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content" style="width:500px">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Отображать</h4>
+            </div>
+            <div class="modal-body">
+                <div class = "box2">
+                    <h4>Отображать</h4>
+                    <div class="checkbox">
+                        <label>
+                            <input data="ТК" type="checkbox" class="selector-type" value="">
+                            TK
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input data="Стартап" type="checkbox" class="selector-type" value="">
+                            Стартап
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input data="Инкубатор" type="checkbox" class="selector-type" value="">
+                            Инкубатор
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input data="Сервиснаякомпания" type="checkbox" class="selector-type" value="">
+                            Сервисная компания
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input data="Внутреннийrd" type="checkbox" class="selector-type" value="">
+                            Внутренний r&d
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input data="ЗОКР" type="checkbox" class="selector-type" value="">
+                            ЗОКР
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input data="Интеллектуальнаясобственность" type="checkbox" class="selector-type" value="">
+                            Интеллектуальная собственность
+                        </label>
+                    </div>
+                    <h4>Отображать статус</h4>
+                    <div class="checkbox" value="">
+                        <label>
+                            <input data="Всеок Естьпроблемы Требуетвмешательства" type="checkbox" class="selector-status" value="">
+                            Активные проекты
+                        </label>
+                    </div>
+                    <div class="checkbox" value="">
+                        <label>
+                            <input data="Впроработке" type="checkbox" class="selector-status" value="">
+                            Проекты в проработке
+                        </label>
+                    </div>
+                    <div class="checkbox" value="">
+                        <label>
+                            <input data="Полка" type="checkbox" class="selector-status" value="">
+                            Проекты на полке
+                        </label>
+                    </div>
+                </div>
+                <div class="box2">
+                    <h4>Выводить в подпись</h4>
+                    <div class="checkbox" value="">
+                        <label>
+                            <input id="textpersent" type="checkbox" class="selector-text" value="">
+                            Процент
+                        </label>
+                    </div>
+                    <div class="checkbox" value="">
+                        <label>
+                            <input id="textsum" type="checkbox" class="selector-text" value="">
+                            Сумму
+                        </label>
+                    </div>
+                    <h4>Визуализируем</h4>
+                    <div>
+                        <label>
+                            <input type="radio" name="optionsRadios" id="shares" value="option1" checked>
+                            Доли
+                        </label>
+                    </div>
+                    <div>
+                        <label>
+                            <input type="radio" name="optionsRadios" id="money" value="option1" checked>
+                            Деньги
+                        </label>
+                    </div>
+                    <div>
+                        <label>
+                            <input type="radio" name="optionsRadios" id="capexopex" value="option1" checked>
+                            Capex/Opex
+                        </label>
+                    </div>
+                    <!--
+                              <div>
+                               <label>
+                                  <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked>
+                                  Типы проектов
+                                </label>
+                              </div>
+                  -->
+                    <!--
+                              <h4>Размер узла</h4>
+                              <div>
+                               <label>
+                                  <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked>
+                                  Пропорционален инвестициям
+                                </label>
+                              </div>
+                              <div>
+                               <label>
+                                  <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked>
+                                  ТК больше
+                                </label>
+                              </div>
+                  -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+                <button id="show-selection" type="button" class="btn btn-primary">Показать</button>
+            </div>
+
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+<div id="colorModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content" style="width:500px">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Отображать</h4>
+            </div>
+            <div class="modal-body">
+                <div class = "box2">
+                    <div class="color-input">
+                        <label>
+                            <h4>Статусы проектов</h4>
+                            <a href="#" class="btn small demo colorpicker-element" id="Всеок" data-color="rgb(255, 255, 255)">Все ок</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="Естьпроблемы" data-color="rgb(255, 255, 255)">Есть проблемы</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="Требуетвмешательства" data-color="rgb(255, 255, 255)">Требует вмешательства</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="Впроработке" data-color="rgb(255, 255, 255)">В проработке</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="Полка" data-color="rgb(255, 255, 255)">На полке</a>
+                        </label>
+                    </div>
+                    <div class="color-input">
+                        <label>
+                            <h4>Доли</h4>
+                            <a href="#" class="btn small demo colorpicker-element" id="UCTTshares" data-color="rgb(255, 255, 255)">Доля УЦТТ</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="TKshares" data-color="rgb(255, 255, 255)">Доля ТК</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="partnershares" data-color="rgb(255, 255, 255)">Доля партнеров</a>
+                        </label>
+                    </div>
+                    <div class="color-input">
+                        <label>
+                            <h4>Деньги</h4>
+                            <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Деньги УЦТТ</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Деньги рычаг ТК</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Деньги партнеров</a>
+                        </label>
+                    </div>
+                </div>
+                <div class="box2">
+                    <div class="color-input">
+                        <label>
+                            <h4>Capex/Opex</h4>
+                            <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Capex</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Opex</a>
+                        </label>
+                        <!--
+                            <label>
+                                <h4>Типы проектов</h4>
+                                <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">ТК</a>
+                                <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Стартап</a>
+                                <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Инкубатор</a>
+                                <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Сервисная компания</a>
+                                <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Внутренний r&d</a>
+                                <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Зокр</a>
+                                <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">Интеллектуальная собственность</a>
+                            </label>
+                      -->
+                        <label>
+                            <h4>УЦТТ</h4>
+                            <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">УЦТТ статус</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">УЦТТ проинвестировано</a>
+                            <a href="#" class="btn small demo colorpicker-element" id="demo_apidemo" data-color="rgb(255, 255, 255)">УЦТТ не проинвестировано</a>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+                <button id="save-color-settings" type="button" class="btn btn-primary">Сохранить стили</button>
+            </div>
+
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+
+<div id="login-overlay" class="modal modal-transparent fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Login to vis.ulnanotech.com</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="well">
+                            <div class="form-group">
+                                <label for="username" class="control-label">Username</label>
+                                <input id="login-input" type="text" class="form-control" id="username" name="username" value="" required="" title="Please enter you username" placeholder="example@gmail.com">
+                                <span class="help-block"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="password" class="control-label">Password</label>
+                                <input id="password-input" type="password" class="form-control" id="password" name="password" value="" required="" title="Please enter your password">
+                                <span class="help-block"></span>
+                            </div>
+                            <div id="loginErrorMsg" class="alert alert-error hide">Wrong username or password</div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="remember" id="remember"> Remember login
+                                </label>
+                                <p class="help-block">(if this is a private computer)</p>
+                            </div>
+                            <button id="auth-btn" type="authentication" class="btn btn-success btn-block">Login</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Scripts-->
+    <script src="js/bootstrap-colorpicker.min.js"></script>
+
 
 <script type="text/javascript" src="App.js"></script>
 </body>

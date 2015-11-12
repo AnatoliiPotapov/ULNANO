@@ -1,6 +1,7 @@
 import Render = require('./Render');
 // Сюда складываем классы, редоставляющие методы работы с отдельным проектом
 
+
 // определяем свойства и методы узла - проекта Наноцентра
 interface ProjectTemplate {
     name: string;
@@ -61,9 +62,10 @@ class Project implements ProjectTemplate {
         this.svgElement = this.svgElement.style("visibility", "hidden");
     }
 
-    Move(cx:number, cy:number) {
+    SetMode(labelMode:string[]) {
 
     }
+
 }
 
 export = Project;
