@@ -4,8 +4,8 @@ source("./script/create_diagrammer_graph.R")
 
 GetPosition <- function(data) {
   gr_dot <- CreateDiagrammeRGraph(data)
-  dot <- render_graph(gr_dot, output = "DOT")
-  gr_svg <- exportSVG(DiagrammeR::grViz(dot, engine = "circo", width = 5000, height = 5000))
+  dot <- render_graph(gr_dot, output = "DOT", width = 15000, height = 15000)
+  gr_svg <- exportSVG(DiagrammeR::grViz(dot, engine = "circo", width = 15000, height = 15000))
   #write(HTML(gr_svg),"./svg.svg")
   doc <- xmlTreeParse(gr_svg)
   r <- xmlRoot(doc)

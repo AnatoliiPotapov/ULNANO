@@ -21,17 +21,25 @@ Process <- function(data) {
     parent = as.character(data$parent),
     size = as.numeric(data$size))
   
-  data$position1Normal <- GetPosition(xdata)
-  
   data$size <- GetSizeView(data$type, data$MAIN_capex + data$MAIN_opex)
   vdata <- data.frame(
     name = as.character(data$name),
     parent = as.character(data$parent),
     size = as.numeric(data$size))
 
-  data$position <- GetPosition(vdata)  
   
-  # модифицируем capex / opex
+
+  proportional <-  GetPosition(vdata)
+  view <- GetPosition(xdata)
+  
+  # модифицируем capex / opexvie
+  position <- matrix(ncol = 6, nrow = 85)
+  for (i in 1:dim(data)[1]) {
+    position[i,] <- c(unlist(proportional[i,]),unlist(view[i,]))
+  }
+  data$position <- position
+  
+  # модифицируем capex / opexvie
   capexopex <- matrix(ncol = 2, nrow = 85)
   for (i in 1:dim(data)[1]) {
     capexopex[i,] <- c(data[i,]$MAIN_capex,

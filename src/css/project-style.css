@@ -22,26 +22,45 @@
     fill:rgb(255, 255, 255);
 }
 
-.shares.UCTT {
+
+
+
+.share.UCTT {
     fill:blue;
 }
 
-.shares.TK {
+.share.TK {
     fill:grey;
 }
 
-.shares.partner {
+.share.partner {
     fill:white;
 }
 
+
+
 .money.UCTT {
-    fill:rgb(255, 255, 255);
+    fill:blue;
 }
 
 .money.TK {
-    fill:rgb(255, 255, 255);
+    fill:grey;
 }
 
 .money.partner {
-    fill:rgb(255, 255, 255);
+    fill:white;
 }
+
+
+
+
+.capexopex.CAPEX {
+    fill: blue;
+}
+
+.capexopex.OPEX {
+    fill:white;
+}
+
+
+

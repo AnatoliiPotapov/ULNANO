@@ -1,4 +1,4 @@
-///<reference path="./d3.d.ts" />
+///<reference path="./../definitions/d3.d.ts" />
 // Сюда мы пишем просто вспомогательные функции, которые нам не нужны в других местах
 
     function maxWordLength(string) {
@@ -48,3 +48,9 @@
                 return d;
             });
     }
+
+    export var SHARES_NAMES = {
+        share: ["UCTT share","TK share","partner share","partner share","partner share","partner share","partner share"],
+        money: ["UCTT money", "TK money", "MULT money"],
+        capexopex: ["CAPEX capexopex", "OPEX capexopex"]
+    };

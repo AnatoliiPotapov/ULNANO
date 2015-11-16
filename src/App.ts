@@ -1,68 +1,12 @@
-///<reference path="./d3.d.ts" />
+///<reference path="./definitions/d3.d.ts" />
 
-import Sys = require('./Sys');
-import Render = require('./Render');
-import Project = require('./Project');
-
-// определяем свойства и методы структуры, в которой храним данные - массиве проектов
-interface NodeArray {
-    nodes: Project[];
-    FindByName(name:string);
-    FindWithParentsByName(name:string);
-    Filter(types:string[], statuses:string[]);
-}
-
-class Projects implements NodeArray {
-    nodes: Project[];
-
-    FindByName(name){
-        for (var i = 0; i < this.nodes.length; i++) {
-            var node_index = -1;
-            if (this.nodes[i].name === name) node_index = i;
-            if (node_index !== -1) return this.nodes[i];
-        }
-    }
-
-    FindWithParentsByName(name){
-        var output:Project[] = [];
-        var projectName = name;
-        var currentProject = this.FindByName(projectName) ;
-        do {
-            output.push(currentProject);
-            currentProject = this.FindByName(currentProject.parent)
-        } while (currentProject != undefined);
-        return output;
-    }
-
-    Filter(types:string[], statuses:string[]) {
-        var output:Project[] = [];
-        for (var i = 0; i < this.nodes.length; i++) {
-            if ((types.indexOf(this.nodes[i].type) || statuses.indexOf(this.nodes[i].status)) >= 0) {
-                output.push(this.nodes[i])
-            }
-        }
-        return output;
-    }
-
-    constructor(parentSvgElement, data) {
-        this.nodes = [];
-        for (var i = 0; i < data.length; i++) {
-            var newProject = new Project(parentSvgElement, data[i]);
-            //console.log(newProject);
-            this.nodes.push( newProject );
-        }
-    }
-
-}
+import Projects = require('./modules/ProjectArray');
 
 class SVG_graph {
+    preSvg;
     svg;
-    a = 5;
     constructor(width:number, height:number, parentTag:string) {
-
-        this.a = 5;
-
-        this.svg = d3.select(parentTag)
+        this.preSvg = d3.select(parentTag)
             .append("div")
             .classed("svg-yNamecontainer", true) // container class to make it responsive
             .append("svg")
@@ -70,27 +14,90 @@ class SVG_graph {
             .attr("viewBox", "0 0 " + width + " " + height)
             .classed("svg-content-responsive", true)
             .append("g")
-            .call(d3.behavior.zoom().scaleExtent([0.1, 8]).on("zoom", this.zoom.bind(this)))
+                .call(d3.behavior.zoom().scaleExtent([0.1, 8]).on("zoom", this.zoom.bind(this)))
             .append("g");
+
+        this.svg = this.preSvg
+            .append("g")
+            .attr("class", "Bastard");
+            /*.append("g")
+                .attr("class", "scaleG")
+            .append("g")
+                .attr("class", "translateG");*/
     }
 
     private zoom() {
-        this.svg.attr("transform", "translate(" + (<any> d3.event).translate + ")scale(" + (<any> d3.event).scale + ")");
+        /*this.svg.select(".scaleG")
+            .attr("transform", "scale(" + (<any> d3.event).scale + ")");
+        this.svg.select(".translateG")
+            .attr("transform", "translate(" + (<any> d3.event).translate + ")");*/
+        this.preSvg
+            .attr("transform", "translate(" + (<any> d3.event).translate + ")scale(" + (<any> d3.event).scale + ")");
     }
 }
 
-// инициализируем данные
-d3.json("json.json", function(error, data) {
-    if (error) return console.warn(error);
-    if (data) {
-        console.log(data);
-        var Vis = new SVG_graph(15000,15000,".vis");
-        var NanoProjects = new Projects(Vis.svg, data)
-        console.log(NanoProjects);
+function Init(data) {
+    var Vis = new SVG_graph(15000,15000,".vis");
+    console.log(Vis);
+    var NanoProjects = new Projects(Vis.svg, data)
+    return NanoProjects;
+}
+
+(<any>window).Init = Init;
+
+
+class ProjectManager {
+    projects: Projects;
+
+    constructor (projects) {
+        this.projects = projects;
+        this.projects.nodes
+            .forEach(function(node) {
+                node.svgElement.on("dblclick", function(d) {
+                    alert(node.currentPosition.cx);
+
+                    projects.parentSvgElement
+                        .transition()
+                        .attr("transform", "translate(" +
+                            (-node.currentPosition.cx + 7500.0)+
+                            "," +
+                            (-node.currentPosition.cy + 1500) + ")");
+
+                });
+            })
     }
-});
 
+    ChangeState(types, statuses, text, sharesMode) {
+        var projects = this.projects;
+        var currentSelection = projects.Filter(types, statuses);
 
+        projects.nodes.forEach(function(entry) {
+            entry.Hide();
+        });
 
+        currentSelection.forEach(function(entry) {
+            //console.log(entry);
+            var entryWithParents = projects.FindWithParentsByName(entry.name)
+            entryWithParents.forEach(function(node) {
+                node.Show();
+                node.SetMode(text, sharesMode);
+            });
+        });
+    }
 
+    UpdateLayout(Mode) {
 
+        this.projects.nodes.forEach(function(entry) {
+            entry.UpdateLayout(Mode)
+        })
+
+        var mainNode = this.projects.FindByName("ULNANOTECH").currentPosition;
+
+        this.projects.parentSvgElement
+            .transition()
+            .attr("transform", "translate(" + (-mainNode.cx + 7500.0) + "," + (-mainNode.cy + 1500) + ")");
+
+    }
+}
+
+(<any>window).ProjectManager = ProjectManager;

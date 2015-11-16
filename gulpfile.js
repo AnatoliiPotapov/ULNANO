@@ -23,8 +23,8 @@ gulp.task('copyIndex', function()
 
 gulp.task('copyCss', function()
 {
-	return gulp.src('src/*.css')
-			.pipe(gulp.dest('./shinyApp/www'))
+	return gulp.src('src/css/*.css')
+			.pipe(gulp.dest('./shinyApp/www/css'))
 			.pipe(browserSync.reload({stream: true}));
 });
 
@@ -32,6 +32,20 @@ gulp.task('copyJson', function()
 {
 	return gulp.src('src/*.json')
 			.pipe(gulp.dest('./shinyApp/www'))
+			.pipe(browserSync.reload({stream: true}));
+});
+
+gulp.task('copyShinyBinding', function()
+{
+	return gulp.src('src/shiny-binding/*.js')
+			.pipe(gulp.dest('./shinyApp/www/js'))
+			.pipe(browserSync.reload({stream: true}));
+});
+
+gulp.task('copyInterface', function()
+{
+	return gulp.src('src/interface/*.js')
+			.pipe(gulp.dest('./shinyApp/www/js'))
 			.pipe(browserSync.reload({stream: true}));
 });
 
@@ -67,4 +81,4 @@ gulp.task('clean', function()
 });
 
 
-gulp.task('default', ['clean', 'copyIndex', 'copyCss', 'copyJson', 'typescriptIt', 'browserSync', 'watchFiles']);
+gulp.task('default', ['clean','copyShinyBinding', 'copyIndex', 'copyCss',  'copyInterface', 'typescriptIt', 'browserSync', 'watchFiles']);

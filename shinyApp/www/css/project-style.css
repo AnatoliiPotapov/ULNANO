@@ -1,0 +1,66 @@
+.status.NA {
+    fill: #9DE691;
+}
+
+.status.Всеок {
+    fill:#73ff32;
+}
+
+.status.Естьпроблемы {
+    fill:red;
+}
+
+.status.Впроработке {
+    fill:black;
+}
+
+.status.Требуетвмешательства {
+    fill:orange;
+}
+
+.status.Полка {
+    fill:rgb(255, 255, 255);
+}
+
+
+
+
+.share.UCTT {
+    fill:blue;
+}
+
+.share.TK {
+    fill:grey;
+}
+
+.share.partner {
+    fill:white;
+}
+
+
+
+.money.UCTT {
+    fill:blue;
+}
+
+.money.TK {
+    fill:grey;
+}
+
+.money.partner {
+    fill:white;
+}
+
+
+
+
+.capexopex.CAPEX {
+    fill: blue;
+}
+
+.capexopex.OPEX {
+    fill:white;
+}
+
+
+
