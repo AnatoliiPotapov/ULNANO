@@ -3,7 +3,7 @@
 var Projects = require('./modules/ProjectArray');
 var SVG_graph = (function () {
     function SVG_graph(width, height, parentTag) {
-        this.preSvg = d3.select(parentTag).append("div").classed("svg-yNamecontainer", true).append("svg").attr("preserveAspectRatio", "xMaxYMin slice").attr("viewBox", "0 0 " + width + " " + height).classed("svg-content-responsive", true).append("g").call(d3.behavior.zoom().scaleExtent([0.1, 8]).on("zoom", this.zoom.bind(this))).append("g");
+        this.preSvg = d3.select(parentTag).append("div").classed("svg-yNamecontainer", true).append("svg").attr("preserveAspectRatio", "xMaxYMin slice").attr("viewBox", "0 0 " + width + " " + height).classed("svg-content-responsive", true).append("g").call(d3.behavior.zoom().scaleExtent([0.01, 20]).on("zoom", this.zoom.bind(this))).append("g");
         this.svg = this.preSvg.append("g").attr("class", "Bastard");
         /*.append("g")
             .attr("class", "scaleG")
@@ -126,6 +126,10 @@ var Project = (function () {
             output.names = Sys.SHARES_NAMES.capexopex;
             output.data = this.data.capexopex;
         }
+        if (sharesMode === "ТипыПроектов") {
+            output.names = ["type " + this.type];
+            output.data = [1];
+        }
         return output;
     };
     Project.prototype.SetCurrentPositionFromMode = function (positionMode) {
@@ -162,7 +166,7 @@ var Project = (function () {
                 return a + b;
             });
             if (moneyAmount == 0)
-                text.push(" - ");
+                text.push(" --- ");
             else
                 text.push(this.data.money.reduce(function (a, b) {
                     return a + b;
@@ -278,7 +282,7 @@ var ProjectLabel = (function () {
         var svgElement = this.innerDiv;
         svgElement.selectAll("p").remove();
         text.forEach(function (sentence) {
-            svgElement.append("p").attr("class", "text name").style("font-size", Sys.getFontSize(xDim, 3, sentence) + "px").html(sentence);
+            svgElement.append("p").style("margin", "0px").attr("class", "text name").style("font-size", Sys.getFontSize(xDim, 3, sentence) + "px").html(sentence);
         });
     };
     return ProjectLabel;
@@ -309,6 +313,7 @@ var ProjectPieChart = (function () {
         }).append("path").attr("d", Sys.arcGenerator(this.r));
     };
     ProjectPieChart.prototype.SetRadius = function (r) {
+        this.r = r;
         var svgElement = this.svgElement;
         var names = this.names;
         svgElement.selectAll("path").transition().attr("d", Sys.arcGenerator(r));

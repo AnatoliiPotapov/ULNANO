@@ -92,6 +92,7 @@ import Sys = require('./Sys');
             text.forEach(function(sentence) {
                 svgElement
                     .append("p")
+                    .style("margin", "0px")
                     .attr("class","text name")
                     .style("font-size", Sys.getFontSize(xDim, 3, sentence) + "px")
                     .html(sentence);
@@ -145,6 +146,7 @@ import Sys = require('./Sys');
 
         }
         SetRadius(r) {
+            this.r = r;
             var svgElement = this.svgElement;
             var names = this.names;
             svgElement.selectAll("path")

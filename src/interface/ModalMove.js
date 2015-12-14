@@ -44,12 +44,21 @@ $(function(){
             sharesMode[i] = $(selection[i]).attr("value")
         }
 
+        // выбираем тип расположения нод
+        var selection = $("input:radio:checked.layout-mode");
+        var layoutMode = new Array();
+        for (var i=0; i < selection.length; i++) {
+            layoutMode[i] = $(selection[i]).attr("value")
+        }
+
         console.log(types);
         console.log(statuses);
         console.log(textMode);
         console.log(sharesMode);
-        ProjectManager.ChangeState(types, statuses, textMode, sharesMode[0]);
+        console.log(layoutMode);
 
+        ProjectManager.UpdateLayout(parseInt(layoutMode[0]));
+        ProjectManager.ChangeState(types, statuses, textMode, sharesMode[0]);
     });
 
 }());

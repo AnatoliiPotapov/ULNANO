@@ -14,7 +14,7 @@ class SVG_graph {
             .attr("viewBox", "0 0 " + width + " " + height)
             .classed("svg-content-responsive", true)
             .append("g")
-                .call(d3.behavior.zoom().scaleExtent([0.1, 8]).on("zoom", this.zoom.bind(this)))
+                .call(d3.behavior.zoom().scaleExtent([0.01, 20]).on("zoom", this.zoom.bind(this)))
             .append("g");
 
         this.svg = this.preSvg

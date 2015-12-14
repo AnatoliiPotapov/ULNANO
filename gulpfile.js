@@ -81,4 +81,4 @@ gulp.task('clean', function()
 });
 
 
-gulp.task('default', ['clean','copyShinyBinding', 'copyIndex', 'copyCss',  'copyInterface', 'typescriptIt', 'browserSync', 'watchFiles']);
+gulp.task('default', ['hello','clean','copyShinyBinding', 'copyIndex', 'copyCss',  'copyInterface', 'typescriptIt', 'browserSync', 'watchFiles']);

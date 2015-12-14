@@ -118,7 +118,10 @@ class Project implements ProjectTemplate {
             output.names = Sys.SHARES_NAMES.capexopex;
             output.data = this.data.capexopex;
         }
-
+        if (sharesMode === "ТипыПроектов") {
+            output.names = ["type " + this.type];
+            output.data = [1];
+        }
         return output;
     }
     private SetCurrentPositionFromMode(positionMode) {
@@ -134,7 +137,6 @@ class Project implements ProjectTemplate {
         }
 
     }
-
     Hide() {
         this.svgElement = this.svgElement.style("visibility", "hidden");
     }
@@ -151,7 +153,7 @@ class Project implements ProjectTemplate {
         text.push(this.name);
         if (  textMode.indexOf("Сумма") >= 0 ) {
             var moneyAmount = this.data.money.reduce(function(a, b){return a+b;});
-            if (moneyAmount == 0) text.push(" - ");
+            if (moneyAmount == 0) text.push(" --- ");
             else text.push(this.data.money.reduce(function(a, b){return a+b;}).toFixed(2).toString())
         };
         if (  textMode.indexOf("Процент") >= 0) { text.push(this.GetPersentFromMode(sharesMode))};
