@@ -1,5 +1,6 @@
 ///<reference path="./definitions/d3.d.ts" />
 
+import Layout = require('./modules/Layout')
 import Projects = require('./modules/ProjectArray');
 
 class SVG_graph {
@@ -10,27 +11,16 @@ class SVG_graph {
             .append("div")
             .classed("svg-yNamecontainer", true) // container class to make it responsive
             .append("svg")
+              .call(d3.behavior.zoom().scaleExtent([0.01, 20]).on("zoom", this.zoom.bind(this)))
             .attr("preserveAspectRatio", "xMaxYMin slice")
             .attr("viewBox", "0 0 " + width + " " + height)
             .classed("svg-content-responsive", true)
-            .append("g")
-                .call(d3.behavior.zoom().scaleExtent([0.01, 20]).on("zoom", this.zoom.bind(this)))
             .append("g");
 
-        this.svg = this.preSvg
-            .append("g")
-            .attr("class", "Bastard");
-            /*.append("g")
-                .attr("class", "scaleG")
-            .append("g")
-                .attr("class", "translateG");*/
+        this.svg = this.preSvg;
     }
 
     private zoom() {
-        /*this.svg.select(".scaleG")
-            .attr("transform", "scale(" + (<any> d3.event).scale + ")");
-        this.svg.select(".translateG")
-            .attr("transform", "translate(" + (<any> d3.event).translate + ")");*/
         this.preSvg
             .attr("transform", "translate(" + (<any> d3.event).translate + ")scale(" + (<any> d3.event).scale + ")");
     }
@@ -47,10 +37,12 @@ function Init(data) {
 
 
 class ProjectManager {
+    layout: Layout;
     projects: Projects;
 
     constructor (projects) {
-        this.projects = projects;
+        this.layout = new Layout(projects)
+        this.projects = this.layout.projects;
         this.projects.nodes
             .forEach(function(node) {
                 node.svgElement.on("dblclick", function(d) {

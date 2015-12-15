@@ -1,20 +1,13 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 ///<reference path="./definitions/d3.d.ts" />
+var Layout = require('./modules/Layout');
 var Projects = require('./modules/ProjectArray');
 var SVG_graph = (function () {
     function SVG_graph(width, height, parentTag) {
-        this.preSvg = d3.select(parentTag).append("div").classed("svg-yNamecontainer", true).append("svg").attr("preserveAspectRatio", "xMaxYMin slice").attr("viewBox", "0 0 " + width + " " + height).classed("svg-content-responsive", true).append("g").call(d3.behavior.zoom().scaleExtent([0.01, 20]).on("zoom", this.zoom.bind(this))).append("g");
-        this.svg = this.preSvg.append("g").attr("class", "Bastard");
-        /*.append("g")
-            .attr("class", "scaleG")
-        .append("g")
-            .attr("class", "translateG");*/
+        this.preSvg = d3.select(parentTag).append("div").classed("svg-yNamecontainer", true).append("svg").call(d3.behavior.zoom().scaleExtent([0.01, 20]).on("zoom", this.zoom.bind(this))).attr("preserveAspectRatio", "xMaxYMin slice").attr("viewBox", "0 0 " + width + " " + height).classed("svg-content-responsive", true).append("g");
+        this.svg = this.preSvg;
     }
     SVG_graph.prototype.zoom = function () {
-        /*this.svg.select(".scaleG")
-            .attr("transform", "scale(" + (<any> d3.event).scale + ")");
-        this.svg.select(".translateG")
-            .attr("transform", "translate(" + (<any> d3.event).translate + ")");*/
         this.preSvg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
     };
     return SVG_graph;
@@ -28,7 +21,8 @@ function Init(data) {
 window.Init = Init;
 var ProjectManager = (function () {
     function ProjectManager(projects) {
-        this.projects = projects;
+        this.layout = new Layout(projects);
+        this.projects = this.layout.projects;
         this.projects.nodes.forEach(function (node) {
             node.svgElement.on("dblclick", function (d) {
                 alert(node.currentPosition.cx);
@@ -62,7 +56,84 @@ var ProjectManager = (function () {
 })();
 window.ProjectManager = ProjectManager;
 
-},{"./modules/ProjectArray":3}],2:[function(require,module,exports){
+},{"./modules/Layout":2,"./modules/ProjectArray":4}],2:[function(require,module,exports){
+var Sys = require('./Sys');
+var Layout = (function () {
+    function Layout(projects) {
+        this.projects = projects;
+        this.svg = this.projects.parentSvgElement;
+        // initialising metaLayout
+        this.metaLayout = new Array;
+        var nodes = this.projects.nodes;
+        for (var i = 0; i < nodes.length; i++) {
+            var childrens = this.projects.FindChildrensIndexes(nodes[i].name);
+            this.metaLayout.push({
+                name: nodes[i].name,
+                R: nodes[i].currentPosition.r,
+                Rout: undefined,
+                RchMax: undefined,
+                position: [nodes[i].currentPosition.cx, nodes[i].currentPosition.cy],
+                childrens: childrens
+            });
+        }
+        ;
+        for (var i = 0; i < nodes.length; i++) {
+            var metaR = this.CalclulateRout(i, 1.1, 1.1);
+            this.metaLayout[i].Rout = metaR[0], this.metaLayout[i].RchMax = metaR[1];
+        }
+        ;
+        console.log(this.metaLayout);
+        var data = this.metaLayout;
+        var GetArc = function (d) {
+            return Sys.ringGenerator(d.Rout, d.Rout + 10)(d);
+        };
+        var GetOut = function (d) {
+            return Sys.ringGenerator(d.Rout + d.RchMax, d.Rout + d.RchMax + 10)(d);
+        };
+        this.svg.selectAll(".arc").data(data).enter().append("g").attr("transform", function (d, i) {
+            return "translate(" + d.position[0] + "," + d.position[1] + ")";
+        }).attr("class", "arc").append("path").attr("d", GetArc);
+        this.svg.selectAll(".out").data(data).enter().append("g").attr("transform", function (d, i) {
+            return "translate(" + d.position[0] + "," + d.position[1] + ")";
+        }).attr("class", "arc").append("path").attr("d", GetOut);
+        for (var i = 0; i < nodes.length; i++) {
+            var projectName = nodes[i].name;
+            var parentName = nodes[i].parent;
+            if (parentName != undefined && parentName != "NA") {
+                var project = nodes[i];
+                var parent = this.projects.FindByName(parentName);
+                this.svg.append("line").attr("x1", project.currentPosition.cx).attr("y1", project.currentPosition.cy).attr("x2", parent.currentPosition.cx).attr("y2", parent.currentPosition.cy).attr("stroke-width", 20).attr("stroke", "black");
+                console.log([project, parent]);
+            }
+        }
+        ;
+    }
+    Layout.prototype.CalclulateRout = function (index, innerCoef, outerCoef) {
+        var metaProject = this.metaLayout[index];
+        if (metaProject.childrens.length == 0) {
+            // means the project is terminal
+            return [metaProject.R, 0];
+        }
+        else {
+            // means that we need to calculate Rout of all child nodes
+            var RoutMax = 0;
+            var Rsum = 0;
+            for (var i = 0; i < metaProject.childrens.length; i++) {
+                var get = this.CalclulateRout(metaProject.childrens[i], innerCoef, outerCoef);
+                var Rout = get[0] + get[1];
+                Rsum = Rsum + Rout;
+                if (Rout > RoutMax)
+                    RoutMax = Rout;
+            }
+            var Rlayout = innerCoef * Math.max(Rsum / Math.PI, metaProject.R + RoutMax);
+            return [Rlayout, outerCoef * RoutMax];
+        }
+    };
+    return Layout;
+})();
+module.exports = Layout;
+
+},{"./Sys":6}],3:[function(require,module,exports){
 var Render = require('./Render');
 var Sys = require('./Sys');
 var Project = (function () {
@@ -195,7 +266,7 @@ var Project = (function () {
 })();
 module.exports = Project;
 
-},{"./Render":4,"./Sys":5}],3:[function(require,module,exports){
+},{"./Render":5,"./Sys":6}],4:[function(require,module,exports){
 var Project = require('./Project');
 var Projects = (function () {
     function Projects(parentSvgElement, data) {
@@ -214,6 +285,22 @@ var Projects = (function () {
             if (node_index !== -1)
                 return this.nodes[i];
         }
+    };
+    Projects.prototype.FindChildrensNames = function (name) {
+        var output = new Array;
+        for (var i = 0; i < this.nodes.length; i++) {
+            if (this.nodes[i].parent === name)
+                output.push(this.nodes[i].name);
+        }
+        return output;
+    };
+    Projects.prototype.FindChildrensIndexes = function (name) {
+        var output = new Array;
+        for (var i = 0; i < this.nodes.length; i++) {
+            if (this.nodes[i].parent === name)
+                output.push(i);
+        }
+        return output;
     };
     Projects.prototype.FindWithChildrensByName = function (name) {
     };
@@ -240,10 +327,20 @@ var Projects = (function () {
 })();
 module.exports = Projects;
 
-},{"./Project":2}],4:[function(require,module,exports){
+},{"./Project":3}],5:[function(require,module,exports){
 // Сюда скидываем функции, которые отвечают за перерисовку графических элементов проекта
 // Классы предоставляют только интерфейс и данных о проектах не хранят!
 var Sys = require('./Sys');
+var Link = (function () {
+    function Link(parentSvgElement) {
+        this.svgElement = parentSvgElement;
+    }
+    Link.prototype.Draw = function (fromV, toV) {
+        this.svgElement.append("line").attr("x1", fromV[0]).attr("y1", fromV[1]).attr("x2", toV[0]).attr("y2", toV[1]);
+    };
+    return Link;
+})();
+exports.Link = Link;
 var ProjectStatusRing = (function () {
     function ProjectStatusRing(parentSvgElement, innerR, outerR, cssClass) {
         this.svgElement = parentSvgElement.append("g").attr("class", "statusRing").append("g").attr("class", "status " + Sys.excludeSpaces(cssClass)).append("path").attr("d", Sys.ringGenerator(innerR, outerR));
@@ -322,7 +419,7 @@ var ProjectPieChart = (function () {
 })();
 exports.ProjectPieChart = ProjectPieChart;
 
-},{"./Sys":5}],5:[function(require,module,exports){
+},{"./Sys":6}],6:[function(require,module,exports){
 ///<reference path="./../definitions/d3.d.ts" />
 // Сюда мы пишем просто вспомогательные функции, которые нам не нужны в других местах
 function maxWordLength(string) {

@@ -8,7 +8,7 @@ data_dir = "./data/"
 # имя для сохранения эксельки
 xlsx_name = "projects.xlsx"
 
-AUTH_NEEDED = TRUE
+AUTH_NEEDED = FALSE
 LOGIN = "admin"
 PASSWORD = "123456"
 

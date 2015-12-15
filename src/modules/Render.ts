@@ -3,6 +3,22 @@
 
 import Sys = require('./Sys');
 
+    export class Link {
+      svgElement;
+      constructor(parentSvgElement) {
+        this.svgElement = parentSvgElement;
+      }
+      Draw(fromV, toV) {
+        this.svgElement
+        /*  <line x1="5" y1="5" x2="40" y2="40" stroke="gray" stroke-width="5"  /> */
+          .append("line")
+          .attr("x1", fromV[0])
+          .attr("y1", fromV[1])
+          .attr("x2", toV[0])
+          .attr("y2", toV[1]);
+      }
+    }
+
     export class ProjectStatusRing {
         svgElement;
         constructor(parentSvgElement, innerR, outerR, cssClass) {

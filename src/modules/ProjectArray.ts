@@ -20,6 +20,22 @@ class Projects implements NodeArray {
         }
     }
 
+    FindChildrensNames(name){
+      var output = new Array;
+      for (var i = 0; i < this.nodes.length; i++) {
+        if (this.nodes[i].parent === name) output.push(this.nodes[i].name)
+      }
+      return output;
+    }
+
+    FindChildrensIndexes(name){
+      var output = new Array;
+      for (var i = 0; i < this.nodes.length; i++) {
+        if (this.nodes[i].parent === name) output.push(i)
+      }
+      return output;
+    }
+
     FindWithChildrensByName(name){
 
     }
