@@ -1,24 +1,65 @@
-///<reference path='./../definitions/d3.d.ts'/>
 import Projects = require('./ProjectArray');
-import Render = require('./Render');
-import Sys = require('./Sys');
 
 class Layout {
-  projects: Projects;
   metaLayout; // Names, R, cx, cy, Rv
   svg;
 
-
-
   GetAlpha(Rlayout, Rout) {
-    return 2 * Rout / Rlayout;
+    return 4 * Math.asin( 0.5 * Rout / Rlayout);
   }
 
-  GePosition() {
-    s
+  GetPosition(start, R, alpha) {
+    var x = start[0] + R * Math.cos(alpha);
+    var y = start[1] + R * Math.sin(alpha);
+    return [x,y];
   }
 
   CalculatePosition(rootIndex) {
+    // initialise if main node
+    if ( rootIndex == 0 ) {
+      this.metaLayout[rootIndex].cx = 0.0;
+      this.metaLayout[rootIndex].cy = 0.0;
+    }
+
+    var position = [this.metaLayout[rootIndex].cx, this.metaLayout[rootIndex].cy];
+    var R = this.metaLayout[rootIndex].Rout;
+
+    var alpha = 0.0;
+    var delta = 0.0;
+
+    if ( this.metaLayout[rootIndex].childrens.length > 1 ) {
+
+      delta = 2 * Math.PI;
+      for (var i = 0; i < this.metaLayout[rootIndex].childrens.length; i++) {
+
+        var nodeIndex = this.metaLayout[rootIndex].childrens[i];
+        var nodeOuterR = this.metaLayout[nodeIndex].Rout + this.metaLayout[nodeIndex].RchMax;
+        var alphaIncr = this.GetAlpha(this.metaLayout[rootIndex].Rout, nodeOuterR);
+
+        delta = delta - alphaIncr
+      }
+
+      delta = delta / this.metaLayout[rootIndex].childrens.length;
+
+    }
+
+    for (var i = 0; i < this.metaLayout[rootIndex].childrens.length; i++) {
+
+      var nodeIndex = this.metaLayout[rootIndex].childrens[i];
+      var nodeOuterR = this.metaLayout[nodeIndex].Rout + this.metaLayout[nodeIndex].RchMax;
+      var alphaIncr = this.GetAlpha(this.metaLayout[rootIndex].Rout, nodeOuterR);
+
+      alpha = alpha + 0.5*alphaIncr;
+      var nodePosition = this.GetPosition(position, R, alpha)
+      alpha = alpha + 0.5*alphaIncr;
+      alpha = alpha + delta;
+
+      this.metaLayout[nodeIndex].cx = nodePosition[0];
+      this.metaLayout[nodeIndex].cy = nodePosition[1];
+
+      this.CalculatePosition(nodeIndex)
+    }
+
 
   }
 
@@ -50,81 +91,47 @@ class Layout {
     }
   }
 
-  constructor(projects) {
-    this.projects = projects;
-    this.svg = this.projects.parentSvgElement;
+  ChangeLayout(projects) {
 
+  }
+
+  UpdateMetaLayout(projects) {
     // initialising metaLayout
     this.metaLayout = new Array;
-    var nodes = this.projects.nodes;
+    var nodes = projects.nodes;
     for (var i = 0; i < nodes.length; i++) {
-      var childrens = this.projects.FindChildrensIndexes(nodes[i].name);
+      var childrens = projects.FindChildrensIndexes(nodes[i].name);
       this.metaLayout.push({
         name: nodes[i].name,
          R: nodes[i].currentPosition.r,
          Rout: undefined,
          RchMax: undefined,
-         position: [nodes[i].currentPosition.cx, nodes[i].currentPosition.cy],
+         cx: undefined,
+         cy: undefined,
          childrens: childrens});
-    };
+    }
+  }
+
+  GetNodesPosition() {
     // calculating Rout
-    for (var i = 0; i < nodes.length; i++) {
+    for (var i = 0; i < this.metaLayout.length; i++) {
       var metaR = this.CalclulateRout(i, 1.1, 1.1);
       this.metaLayout[i].Rout = metaR[0],
       this.metaLayout[i].RchMax = metaR[1]
     };
+    // calculate Position
+    this.CalculatePosition(0);
+    var output = new Array;
+    // return New POsition
+    for (var i = 0; i < this.metaLayout.length; i++) {
+      output.push([this.metaLayout[i].cx,this.metaLayout[i].cy]);
+    }
+    return output;
+  }
 
-    console.log(this.metaLayout);
-
-    var data = this.metaLayout;
-
-    var GetArc = function(d) {
-      return Sys.ringGenerator(d.Rout,d.Rout+10)(d);
-    };
-
-    var GetOut = function(d) {
-      return Sys.ringGenerator(d.Rout+d.RchMax,d.Rout+d.RchMax+10)(d);
-    };
-
-    this.svg
-      .selectAll(".arc")
-      .data(data)
-      .enter().append("g")
-      .attr("transform", function(d,i){ return "translate("+d.position[0]+","+d.position[1]+")";})
-      .attr("class","arc")
-          .append("path")
-          .attr("d", GetArc);
-
-      this.svg
-        .selectAll(".out")
-        .data(data)
-        .enter().append("g")
-        .attr("transform", function(d,i){ return "translate("+d.position[0]+","+d.position[1]+")";})
-        .attr("class","arc")
-            .append("path")
-            .attr("d", GetOut);
-
-    // drawing links
-    for (var i = 0; i < nodes.length; i++) {
-      var projectName = nodes[i].name;
-      var parentName = nodes[i].parent;
-
-      if (parentName != undefined && parentName != "NA") {
-        var project = nodes[i];
-        var parent = this.projects.FindByName(parentName);
-
-        this.svg
-          .append("line")
-          .attr("x1", project.currentPosition.cx)
-          .attr("y1", project.currentPosition.cy)
-          .attr("x2", parent.currentPosition.cx)
-          .attr("y2", parent.currentPosition.cy)
-          .attr("stroke-width", 20)
-          .attr("stroke", "black");
-        console.log([project, parent]);
-
-      }
-    };
+  constructor(projects) {
+    this.svg = projects.parentSvgElement;
+    this.UpdateMetaLayout(projects);
   }
 
 }

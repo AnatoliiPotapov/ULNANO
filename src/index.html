@@ -49,6 +49,30 @@
     </div>
 </div>
 
+
+
+<div class="input-group" style="position: absolute; top:60px; left:30px;>
+  <form class="navbar-form pull-left" role="search" method="get" id="searchform" action="http://localhost:8080/test/">
+  				<div class="input-group">
+  					<div class="input-group-btn">
+  						<button type="button" id="searchcategory" value="BLOG" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">BLOG <span class="caret"></span></button>
+
+          				<ul id="searchdropdown" class="dropdown-menu" role="menu">
+            					<li><a href="javascript:void(0)">BLOG</a></li>
+            					<li><a href="javascript:void(0)">FORUM</a></li>
+            					<li><a href="javascript:void(0)">DOCS</a></li>
+  		  					<li class="divider"></li>
+            					<li><a href="javascript:void(0)">ANY</a></li>
+          				</ul>
+  					</div>
+  					<input type="text" class="form-control" value="" placeholder="Search..." name="s" id="s">
+  					<div class="input-group-btn">
+  						<button type="submit" id="searchsubmit" value="Search" class="btn btn-success"><span class="glyphicon glyphicon-search"></span></button>
+  					</div>
+  				</div>
+      		</form>
+</div>
+
 <!-- Begin page content -->
 <div style="position:absolute;top:0px;left:0px;bottom:0;right:0; width: 100%;">
     <div class="vis" style = "height:100vh; overflow:hidden"></div>

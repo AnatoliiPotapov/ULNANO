@@ -1,113 +1,64 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 ///<reference path="./definitions/d3.d.ts" />
-var Layout = require('./modules/Layout');
 var Projects = require('./modules/ProjectArray');
-var SVG_graph = (function () {
-    function SVG_graph(width, height, parentTag) {
-        this.preSvg = d3.select(parentTag).append("div").classed("svg-yNamecontainer", true).append("svg").call(d3.behavior.zoom().scaleExtent([0.01, 20]).on("zoom", this.zoom.bind(this))).attr("preserveAspectRatio", "xMaxYMin slice").attr("viewBox", "0 0 " + width + " " + height).classed("svg-content-responsive", true).append("g");
-        this.svg = this.preSvg;
-    }
-    SVG_graph.prototype.zoom = function () {
-        this.preSvg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-    };
-    return SVG_graph;
-})();
+var ProjectManager = require('./modules/ProjectManager');
+var SVG_graph = require('./modules/Svg');
 function Init(data) {
     var Vis = new SVG_graph(15000, 15000, ".vis");
     console.log(Vis);
     var NanoProjects = new Projects(Vis.svg, data);
-    return NanoProjects;
+    return [NanoProjects, Vis];
 }
 window.Init = Init;
-var ProjectManager = (function () {
-    function ProjectManager(projects) {
-        this.layout = new Layout(projects);
-        this.projects = this.layout.projects;
-        this.projects.nodes.forEach(function (node) {
-            node.svgElement.on("dblclick", function (d) {
-                alert(node.currentPosition.cx);
-                projects.parentSvgElement.transition().attr("transform", "translate(" + (-node.currentPosition.cx + 7500.0) + "," + (-node.currentPosition.cy + 1500) + ")");
-            });
-        });
-    }
-    ProjectManager.prototype.ChangeState = function (types, statuses, text, sharesMode) {
-        var projects = this.projects;
-        var currentSelection = projects.Filter(types, statuses);
-        projects.nodes.forEach(function (entry) {
-            entry.Hide();
-        });
-        currentSelection.forEach(function (entry) {
-            //console.log(entry);
-            var entryWithParents = projects.FindWithParentsByName(entry.name);
-            entryWithParents.forEach(function (node) {
-                node.Show();
-                node.SetMode(text, sharesMode);
-            });
-        });
-    };
-    ProjectManager.prototype.UpdateLayout = function (Mode) {
-        this.projects.nodes.forEach(function (entry) {
-            entry.UpdateLayout(Mode);
-        });
-        var mainNode = this.projects.FindByName("ULNANOTECH").currentPosition;
-        this.projects.parentSvgElement.transition().attr("transform", "translate(" + (-mainNode.cx + 7500.0) + "," + (-mainNode.cy + 1500) + ")");
-    };
-    return ProjectManager;
-})();
 window.ProjectManager = ProjectManager;
 
-},{"./modules/Layout":2,"./modules/ProjectArray":4}],2:[function(require,module,exports){
-var Sys = require('./Sys');
+},{"./modules/ProjectArray":4,"./modules/ProjectManager":5,"./modules/Svg":7}],2:[function(require,module,exports){
 var Layout = (function () {
     function Layout(projects) {
-        this.projects = projects;
-        this.svg = this.projects.parentSvgElement;
-        // initialising metaLayout
-        this.metaLayout = new Array;
-        var nodes = this.projects.nodes;
-        for (var i = 0; i < nodes.length; i++) {
-            var childrens = this.projects.FindChildrensIndexes(nodes[i].name);
-            this.metaLayout.push({
-                name: nodes[i].name,
-                R: nodes[i].currentPosition.r,
-                Rout: undefined,
-                RchMax: undefined,
-                position: [nodes[i].currentPosition.cx, nodes[i].currentPosition.cy],
-                childrens: childrens
-            });
-        }
-        ;
-        for (var i = 0; i < nodes.length; i++) {
-            var metaR = this.CalclulateRout(i, 1.1, 1.1);
-            this.metaLayout[i].Rout = metaR[0], this.metaLayout[i].RchMax = metaR[1];
-        }
-        ;
-        console.log(this.metaLayout);
-        var data = this.metaLayout;
-        var GetArc = function (d) {
-            return Sys.ringGenerator(d.Rout, d.Rout + 10)(d);
-        };
-        var GetOut = function (d) {
-            return Sys.ringGenerator(d.Rout + d.RchMax, d.Rout + d.RchMax + 10)(d);
-        };
-        this.svg.selectAll(".arc").data(data).enter().append("g").attr("transform", function (d, i) {
-            return "translate(" + d.position[0] + "," + d.position[1] + ")";
-        }).attr("class", "arc").append("path").attr("d", GetArc);
-        this.svg.selectAll(".out").data(data).enter().append("g").attr("transform", function (d, i) {
-            return "translate(" + d.position[0] + "," + d.position[1] + ")";
-        }).attr("class", "arc").append("path").attr("d", GetOut);
-        for (var i = 0; i < nodes.length; i++) {
-            var projectName = nodes[i].name;
-            var parentName = nodes[i].parent;
-            if (parentName != undefined && parentName != "NA") {
-                var project = nodes[i];
-                var parent = this.projects.FindByName(parentName);
-                this.svg.append("line").attr("x1", project.currentPosition.cx).attr("y1", project.currentPosition.cy).attr("x2", parent.currentPosition.cx).attr("y2", parent.currentPosition.cy).attr("stroke-width", 20).attr("stroke", "black");
-                console.log([project, parent]);
-            }
-        }
-        ;
+        this.svg = projects.parentSvgElement;
+        this.UpdateMetaLayout(projects);
     }
+    Layout.prototype.GetAlpha = function (Rlayout, Rout) {
+        return 4 * Math.asin(0.5 * Rout / Rlayout);
+    };
+    Layout.prototype.GetPosition = function (start, R, alpha) {
+        var x = start[0] + R * Math.cos(alpha);
+        var y = start[1] + R * Math.sin(alpha);
+        return [x, y];
+    };
+    Layout.prototype.CalculatePosition = function (rootIndex) {
+        // initialise if main node
+        if (rootIndex == 0) {
+            this.metaLayout[rootIndex].cx = 0.0;
+            this.metaLayout[rootIndex].cy = 0.0;
+        }
+        var position = [this.metaLayout[rootIndex].cx, this.metaLayout[rootIndex].cy];
+        var R = this.metaLayout[rootIndex].Rout;
+        var alpha = 0.0;
+        var delta = 0.0;
+        if (this.metaLayout[rootIndex].childrens.length > 1) {
+            delta = 2 * Math.PI;
+            for (var i = 0; i < this.metaLayout[rootIndex].childrens.length; i++) {
+                var nodeIndex = this.metaLayout[rootIndex].childrens[i];
+                var nodeOuterR = this.metaLayout[nodeIndex].Rout + this.metaLayout[nodeIndex].RchMax;
+                var alphaIncr = this.GetAlpha(this.metaLayout[rootIndex].Rout, nodeOuterR);
+                delta = delta - alphaIncr;
+            }
+            delta = delta / this.metaLayout[rootIndex].childrens.length;
+        }
+        for (var i = 0; i < this.metaLayout[rootIndex].childrens.length; i++) {
+            var nodeIndex = this.metaLayout[rootIndex].childrens[i];
+            var nodeOuterR = this.metaLayout[nodeIndex].Rout + this.metaLayout[nodeIndex].RchMax;
+            var alphaIncr = this.GetAlpha(this.metaLayout[rootIndex].Rout, nodeOuterR);
+            alpha = alpha + 0.5 * alphaIncr;
+            var nodePosition = this.GetPosition(position, R, alpha);
+            alpha = alpha + 0.5 * alphaIncr;
+            alpha = alpha + delta;
+            this.metaLayout[nodeIndex].cx = nodePosition[0];
+            this.metaLayout[nodeIndex].cy = nodePosition[1];
+            this.CalculatePosition(nodeIndex);
+        }
+    };
     Layout.prototype.CalclulateRout = function (index, innerCoef, outerCoef) {
         var metaProject = this.metaLayout[index];
         if (metaProject.childrens.length == 0) {
@@ -129,11 +80,44 @@ var Layout = (function () {
             return [Rlayout, outerCoef * RoutMax];
         }
     };
+    Layout.prototype.ChangeLayout = function (projects) {
+    };
+    Layout.prototype.UpdateMetaLayout = function (projects) {
+        // initialising metaLayout
+        this.metaLayout = new Array;
+        var nodes = projects.nodes;
+        for (var i = 0; i < nodes.length; i++) {
+            var childrens = projects.FindChildrensIndexes(nodes[i].name);
+            this.metaLayout.push({
+                name: nodes[i].name,
+                R: nodes[i].currentPosition.r,
+                Rout: undefined,
+                RchMax: undefined,
+                cx: undefined,
+                cy: undefined,
+                childrens: childrens
+            });
+        }
+    };
+    Layout.prototype.GetNodesPosition = function () {
+        for (var i = 0; i < this.metaLayout.length; i++) {
+            var metaR = this.CalclulateRout(i, 1.1, 1.1);
+            this.metaLayout[i].Rout = metaR[0], this.metaLayout[i].RchMax = metaR[1];
+        }
+        ;
+        // calculate Position
+        this.CalculatePosition(0);
+        var output = new Array;
+        for (var i = 0; i < this.metaLayout.length; i++) {
+            output.push([this.metaLayout[i].cx, this.metaLayout[i].cy]);
+        }
+        return output;
+    };
     return Layout;
 })();
 module.exports = Layout;
 
-},{"./Sys":6}],3:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var Render = require('./Render');
 var Sys = require('./Sys');
 var Project = (function () {
@@ -154,10 +138,6 @@ var Project = (function () {
         // создаем текстовое поле
         this.textLabel = new Render.ProjectLabel(this.svgElement, this.currentPosition.r, data);
         var this_name = this.name;
-        /*this.svgElement
-            .on("dblclick", function(d) {
-                    alert(this_name);
-            });*/
     }
     Project.prototype.GetPersentFromMode = function (sharesMode) {
         var persent;
@@ -203,18 +183,14 @@ var Project = (function () {
         }
         return output;
     };
-    Project.prototype.SetCurrentPositionFromMode = function (positionMode) {
+    Project.prototype.SetRadiusFromMode = function (positionMode) {
         if (positionMode === 1) {
             this.currentPosition = {
-                "cx": this.data.position[0],
-                "cy": this.data.position[1],
                 "r": this.data.position[2]
             };
         }
         if (positionMode === 2) {
             this.currentPosition = {
-                "cx": this.data.position[3],
-                "cy": this.data.position[4],
                 "r": this.data.position[5]
             };
         }
@@ -254,19 +230,22 @@ var Project = (function () {
         this.svgShares.SetProperty(newShares.data, newShares.names);
     };
     Project.prototype.UpdateLayout = function (Mode) {
-        // обновляем координату ноды
-        this.SetCurrentPositionFromMode(Mode);
-        this.svgElement.transition().attr("transform", "translate(" + (this.currentPosition.cx) + "," + (this.currentPosition.cy) + ")");
-        // обновляем радиусы
+        // обновляем радиус ноды
+        this.SetRadiusFromMode(Mode);
+        // обновляем радиусы элементов
         this.statusRing.SetRadius(this.currentPosition.r, this.currentPosition.r * 1.05);
         this.svgShares.SetRadius(this.currentPosition.r);
         this.textLabel.SetRadius(this.currentPosition.r);
+    };
+    // Update position according to Layout
+    Project.prototype.UpdatePosition = function (cx, cy) {
+        this.svgElement.transition().attr("transform", "translate(" + (cx) + "," + (cy) + ")");
     };
     return Project;
 })();
 module.exports = Project;
 
-},{"./Render":5,"./Sys":6}],4:[function(require,module,exports){
+},{"./Render":6,"./Sys":8}],4:[function(require,module,exports){
 var Project = require('./Project');
 var Projects = (function () {
     function Projects(parentSvgElement, data) {
@@ -284,6 +263,15 @@ var Projects = (function () {
                 node_index = i;
             if (node_index !== -1)
                 return this.nodes[i];
+        }
+    };
+    Projects.prototype.FindIndexByName = function (name) {
+        for (var i = 0; i < this.nodes.length; i++) {
+            var node_index = -1;
+            if (this.nodes[i].name === name)
+                node_index = i;
+            if (node_index !== -1)
+                return i;
         }
     };
     Projects.prototype.FindChildrensNames = function (name) {
@@ -328,6 +316,58 @@ var Projects = (function () {
 module.exports = Projects;
 
 },{"./Project":3}],5:[function(require,module,exports){
+var Layout = require('./Layout');
+var View = require('./View');
+//import Link = require('./Link');
+var ProjectManager = (function () {
+    function ProjectManager(projects, svg) {
+        this.layout = new Layout(projects);
+        this.projects = projects;
+        this.svg = projects.parentSvgElement;
+        this.view = new View(this.layout, svg);
+        var view = this.view;
+        this.projects.nodes.forEach(function (node) {
+            node.svgElement.on("dblclick", function (d) {
+                alert(node.name);
+                alert(projects.FindIndexByName(node.name));
+                view.SetView(projects.FindIndexByName(node.name));
+            });
+        });
+    }
+    ProjectManager.prototype.ChangeState = function (types, statuses, text, sharesMode) {
+        var projects = this.projects;
+        var currentSelection = projects.Filter(types, statuses);
+        projects.nodes.forEach(function (entry) {
+            entry.Hide();
+        });
+        currentSelection.forEach(function (entry) {
+            //console.log(entry);
+            var entryWithParents = projects.FindWithParentsByName(entry.name);
+            entryWithParents.forEach(function (node) {
+                node.Show();
+                node.SetMode(text, sharesMode);
+            });
+        });
+    };
+    ProjectManager.prototype.UpdateLayout = function (Mode) {
+        // Update Radiuses of projects
+        this.projects.nodes.forEach(function (entry) {
+            entry.UpdateLayout(Mode);
+        });
+        // Update Nodes positions
+        this.layout.UpdateMetaLayout(this.projects);
+        // Rerender node to new coordinates
+        var coordinates = this.layout.GetNodesPosition();
+        this.view.SetView(0);
+        for (var i = 0; i < this.projects.nodes.length; i++) {
+            this.projects.nodes[i].UpdatePosition(coordinates[i][0], coordinates[i][1]);
+        }
+    };
+    return ProjectManager;
+})();
+module.exports = ProjectManager;
+
+},{"./Layout":2,"./View":9}],6:[function(require,module,exports){
 // Сюда скидываем функции, которые отвечают за перерисовку графических элементов проекта
 // Классы предоставляют только интерфейс и данных о проектах не хранят!
 var Sys = require('./Sys');
@@ -419,7 +459,21 @@ var ProjectPieChart = (function () {
 })();
 exports.ProjectPieChart = ProjectPieChart;
 
-},{"./Sys":6}],6:[function(require,module,exports){
+},{"./Sys":8}],7:[function(require,module,exports){
+var SVG_graph = (function () {
+    function SVG_graph(width, height, parentTag) {
+        this.zoom = d3.behavior.zoom().scaleExtent([0.01, 20]);
+        this.preSvg = d3.select(parentTag).append("div").classed("svg-yNamecontainer", true).append("svg").call(this.zoom.on("zoom", this.zoomFunction.bind(this))).on("dblclick.zoom", null).attr("preserveAspectRatio", "xMaxYMin slice").attr("viewBox", "0 0 " + width + " " + height).classed("svg-content-responsive", true).append("g");
+        this.svg = this.preSvg;
+    }
+    SVG_graph.prototype.zoomFunction = function () {
+        this.preSvg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+    };
+    return SVG_graph;
+})();
+module.exports = SVG_graph;
+
+},{}],8:[function(require,module,exports){
 ///<reference path="./../definitions/d3.d.ts" />
 // Сюда мы пишем просто вспомогательные функции, которые нам не нужны в других местах
 function maxWordLength(string) {
@@ -468,5 +522,44 @@ exports.SHARES_NAMES = {
     money: ["UCTT money", "TK money", "MULT money"],
     capexopex: ["CAPEX capexopex", "OPEX capexopex"]
 };
+
+},{}],9:[function(require,module,exports){
+///<reference path="./../definitions/d3.d.ts" />
+var View = (function () {
+    function View(layout, svg) {
+        this.svg = svg.svg;
+        this.zoom = svg.zoom;
+        this.layout = layout;
+        this.lastP = [0, 0, 7500];
+    }
+    View.prototype.transition = function (svg, zoom, start, end) {
+        var center = [7500, 4000], i = d3.interpolateZoom(start, end);
+        d3.transition().duration(2 * i.duration).tween("zoom", function () {
+            return function (t) {
+                var p = transform(i(t));
+                svg.call(zoom.event);
+                zoom.scale(p[0]).translate([p[1], p[2]]);
+            };
+        });
+        function transform(p) {
+            var k = 4000 / p[2];
+            return [k, (center[0] - p[0] * k), (center[1] - p[1] * k)];
+            //return "translate(" + (center[0] - p[0] * k) + "," + (center[1] - p[1] * k) + ")scale(" + k + ")";
+        }
+    };
+    View.prototype.SetView = function (rootIndex) {
+        var scale = scale = 3800 / (this.layout.metaLayout[rootIndex].Rout + this.layout.metaLayout[rootIndex].RchMax);
+        var translate = [
+            7500 - this.layout.metaLayout[rootIndex].cx * scale,
+            4000 - this.layout.metaLayout[rootIndex].cy * scale
+        ];
+        var height = (this.layout.metaLayout[rootIndex].Rout + this.layout.metaLayout[rootIndex].RchMax);
+        var newP = [this.layout.metaLayout[rootIndex].cx, this.layout.metaLayout[rootIndex].cy, height];
+        this.transition(this.svg, this.zoom, this.lastP, newP);
+        this.lastP = newP;
+    };
+    return View;
+})();
+module.exports = View;
 
 },{}]},{},[1]);

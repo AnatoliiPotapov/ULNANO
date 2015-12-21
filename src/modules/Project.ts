@@ -80,11 +80,6 @@ class Project implements ProjectTemplate {
         );
 
         var this_name = this.name;
-
-        /*this.svgElement
-            .on("dblclick", function(d) {
-                    alert(this_name);
-            });*/
     }
 
     private GetPersentFromMode(sharesMode) {
@@ -124,15 +119,11 @@ class Project implements ProjectTemplate {
         }
         return output;
     }
-    private SetCurrentPositionFromMode(positionMode) {
+    private SetRadiusFromMode(positionMode) {
         if (positionMode === 1) { this.currentPosition = {
-            "cx":this.data.position[0],
-            "cy":this.data.position[1],
             "r":this.data.position[2]};
         }
         if (positionMode === 2) { this.currentPosition = {
-            "cx":this.data.position[3],
-            "cy":this.data.position[4],
             "r":this.data.position[5]};
         }
 
@@ -164,16 +155,20 @@ class Project implements ProjectTemplate {
     }
     UpdateLayout(Mode) {
 
-        // обновляем координату ноды
-        this.SetCurrentPositionFromMode(Mode);
-        this.svgElement
-            .transition()
-            .attr("transform", "translate(" + (this.currentPosition.cx) + "," + (this.currentPosition.cy) + ")");
+        // обновляем радиус ноды
+        this.SetRadiusFromMode(Mode);
 
-        // обновляем радиусы
+        // обновляем радиусы элементов
         this.statusRing.SetRadius(this.currentPosition.r, this.currentPosition.r * 1.05);
         this.svgShares.SetRadius(this.currentPosition.r);
         this.textLabel.SetRadius(this.currentPosition.r);
+
+    }
+    // Update position according to Layout
+    UpdatePosition(cx,cy) {
+      this.svgElement
+          .transition()
+          .attr("transform", "translate(" + (cx) + "," + (cy) + ")");
     }
 }
 
